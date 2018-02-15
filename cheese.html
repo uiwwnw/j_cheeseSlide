@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    .cheese {
+      position: relative;
+      overflow: hidden;
+
+    }
+
+    .cheeseWrap {
+      width: 100%;
+      font-size: 0;
+      white-space: nowrap;
+
+    }
+
+    .cheeseItem {
+      display: inline-block;
+    } // 기본스타일 끝
+    .cheeseWrap {}
+
+    .cheeseItem {
+      width: 100%;
+      height: 50px;
+      line-height: 50px;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+      border: 1px solid #000;
+      text-align: center;
+      font-size: 20px;
+      color: #fff;
+      background: red;
+      &.half {
+        width: 50%;
+      }
+    }
+
+    .cheeseLeftBtn,
+    .cheeseRightBtn {
+      position: absolute;
+      top: 50%;
+      width: 30px;
+      height: 30px;
+      margin-top: -15px;
+      border: 1px solid;
+      font: inherit;
+      background: #fff;
+    }
+
+    .cheeseLeftBtn {
+      left: 0;
+
+    }
+
+    .cheeseLeftBtn:before {
+      content: "<";
+    }
+
+    .cheeseRightBtn {
+      right: 0;
+
+    }
+
+    .cheeseRightBtn:before {
+      content: ">";
+    }
+  </style>
+</head>
+
+<body>
+  <div class="cheese">
+    <div class="cheeseWrap">
+      <div class="cheeseItem">안녕안녕1</div>
+      <div class="cheeseItem">안녕안녕2</div>
+      <div class="cheeseItem">안녕안녕3</div>
+      <div class="cheeseItem">안녕안녕4</div>
+      <div class="cheeseItem">안녕안녕5</div>
+    </div>
+  </div>
+  <button id="ddd">dsadsds</button>
+
+  <script>
+    function cheeseSlider(opt) {
+      var _this = this;
+      this.opt = {};
+      this.set = function () {
+        return this.opt;
+      }
+      this.check = function () {
+        this.chk.cal = (this.opt.dir === 1) ? -1 : +1;
+        (this.opt.dir === false) && (this.chk.cal = 0);
+        this.chk.idx = Number(this.opt.innerWrap.getAttribute('data-index'));
+
+        this.chk.idx += this.chk.cal;
+        if (this.chk.idx < 0) {
+          this.chk.idx = this.opt.length - 1;
+          (this.opt.loop) && (this.chk.loop = 'last');
+        } else if (this.chk.idx >= this.opt.length) {
+          this.chk.idx = 0;
+          (this.opt.loop) && (this.chk.loop = 'first');
+        }
+        //console.log(this.chk.idx);
+        return this.chk;
+      }
+      this.size = function () {
+        this.opt.dir = false;
+        this.opt.itemWidth = [];
+        this.opt.totalWidth = 0;
+        this.opt.pos = [];
+        this.opt.pos[0] = 0;
+        for (var i = 0; i < this.opt.length; i++) {
+          var _width = this.opt.item[i].offsetWidth;
+          this.opt.itemWidth.push(_width);
+          this.opt.totalWidth += _width;
+          this.opt.pos[i + 1] = this.opt.totalWidth;
+        }
+        //console.log(this.opt.pos);
+        this.opt.loopStyle;
+        this.opt.loopStyleMl = 0;
+
+        if (this.opt.loop) {
+          this.opt.loopEa = opt.loopEa === undefined ? 1 : opt.loopEa;
+          for (var i = 1; i <= this.opt.loopEa; i++) {
+            this.opt.loopStyleMl += this.opt.item[this.opt.length - i].offsetWidth;
+          }
+          this.opt.loopStyle = 'margin-left:-' + this.opt.loopStyleMl + 'px;';
+          this.opt.innerWrap.style.cssText = this.opt.loopStyle;
+        }
+      }
+      this.btn = function () {
+
+        this.opt.cheeseLeftBtn.onclick = function () {
+          _this.opt.dir = 1;
+          _this.move(_this.check());
+          _this.pause();
+        }
+        this.opt.cheeseRightBtn.onclick = function () {
+          _this.opt.dir = 0;
+          _this.move(_this.check());
+          _this.pause();
+        }
+      }
+      this.btnDisabled = function () {
+        this.opt.cheeseLeftBtn.setAttribute('disabled', 'disabled');
+        this.opt.cheeseRightBtn.setAttribute('disabled', 'disabled');
+      }
+      this.btnAbled = function () {
+        this.opt.cheeseLeftBtn.removeAttribute('disabled');
+        this.opt.cheeseRightBtn.removeAttribute('disabled');
+      }
+      this.get = function () {
+        //console.log(this);
+        this.chk = {};
+        this.chk.transition = true;
+        this.chk.loop = false;
+        this.opt.el = document.querySelector(opt.el);
+        this.opt.innerWrap = document.querySelector(opt.innerWrap) === null ? document.querySelector('.cheeseWrap') :
+          this.opt.el.querySelector(opt.innerWrap);
+        this.opt.item = document.querySelector(opt.item) === null ? this.opt.el.querySelectorAll('.cheeseItem') :
+          document.querySelector(opt.item);
+        this.opt.length = this.opt.item.length;
+        this.opt.time = opt.time === undefined ? 2500 : opt.time;
+        this.opt.duration = opt.duration === undefined ? 1000 : opt.duration;
+        this.opt.direct = opt.direct === undefined ? 0 : opt.direct; // 0 === right
+        this.opt.btn = opt.btn === undefined ? true : opt.btn;
+        if (this.opt.btn) {
+          this.opt.cheeseLeftBtn = document.createElement('button');
+          this.opt.cheeseLeftBtn.setAttribute('class', 'cheeseLeftBtn');
+          this.opt.cheeseRightBtn = document.createElement('button');
+          this.opt.cheeseRightBtn.setAttribute('class', 'cheeseRightBtn');
+          this.opt.el.append(this.opt.cheeseLeftBtn);
+          this.opt.el.append(this.opt.cheeseRightBtn);
+
+        }
+        this.opt.idx = opt.idx === undefined ? 0 : opt.idx;
+        this.opt.resize = opt.resize === undefined ? true : opt.resize;
+        this.opt.loop = opt.loop === undefined ? true : opt.loop;
+        this.opt.auto = opt.auto === undefined ? true : opt.auto;
+        this.opt.autoStart = opt.autoStart === undefined ? true : opt.autoStart;
+        this.opt.innerWrap.setAttribute('data-index', this.opt.idx);
+        this.opt.dir = 0;
+        this.opt.sto;
+        this.opt.autoSto;
+        this.size();
+        if (this.opt.loop) {
+          this.opt.loopEa = opt.loopEa === undefined ? 1 : opt.loopEa;
+          for (var i = 1; i <= this.opt.loopEa; i++) {
+            this.opt.lastPrime = this.opt.item[this.opt.length - i].cloneNode(true);
+            this.opt.firstPrime = this.opt.item[i - 1].cloneNode(true);
+            this.opt.innerWrap.append(this.opt.firstPrime);
+            this.opt.innerWrap.prepend(this.opt.lastPrime);
+          }
+        }
+      }
+      this.pause = function () {
+        this.btnDisabled();
+        clearTimeout(_this.opt.autoSto);
+        if (this.opt.autoStart) {
+          _this.opt.autoSto = setTimeout(function () {
+            _this.auto();
+          }, _this.opt.time);
+        }
+      }
+      this.auto = function () {
+        //var _this = this;
+        clearTimeout(_this.opt.autoSto);
+        _this.opt.autoSto = setTimeout(function () {
+          _this.opt.dir = 0;
+          _this.move(_this.check());
+          _this.auto();
+        }, _this.opt.time);
+      }
+      this.move = function (opt) {
+        if (opt.auto !== true) {
+          clearTimeout(_this.opt.autoSto);
+        }
+        var _idx = opt.idx;
+        var _trans = 'transition: ' + this.opt.duration / 1000 + 's;';
+        this.opt.innerWrap.setAttribute('data-index', _idx);
+        this.btnDisabled();
+        //console.log('fdasdasdas');
+        // console.log(_idx)
+        if (this.chk.loop === 'last') {
+          this.opt.innerWrap.style.cssText = _trans + 'transform: translateX(' +
+            this.opt.itemWidth[this.opt.length - 1] + 'px);' + this.opt.loopStyle;
+        } else if (this.chk.loop === 'first') {
+          this.opt.innerWrap.style.cssText = _trans + 'transform: translateX(' +
+            -this.opt.totalWidth + 'px);' + this.opt.loopStyle;
+        } else if ((opt.transition === true)) {
+          this.opt.innerWrap.style.cssText = _trans + 'transform: translateX(' +
+            -this.opt.pos[_idx] + 'px);' + this.opt.loopStyle;
+        } else {
+          this.opt.innerWrap.style.cssText = 'transform: translateX(' + -this.opt.pos[_idx] + 'px);' + this.opt.loopStyle;
+        }
+        //console.log(this.opt.item[1].offsetWidth);
+        clearTimeout(_this.opt.sto);
+        _this.opt.sto = setTimeout(function () {
+          _this.opt.innerWrap.style.cssText = 'transform: translateX(' + -_this.opt.pos[_idx] + 'px);' + _this.opt
+            .loopStyle;
+          _this.btnAbled();
+        }, _this.opt.duration);
+      }
+
+      this.resize = function () {
+        //console.log('dsadasd');
+        window.onresize = function () {
+          //console.log('dsadas');
+          _this.size();
+        };
+
+      }
+
+      this.get();
+      this.set();
+      this.move({
+        idx: this.opt.idx
+      });
+      (this.opt.btn) && (this.btn());
+      (this.opt.auto) && (this.auto());
+      (this.opt.resize) && (this.resize());
+    }
+
+    var slide = new cheeseSlider({
+      el: '.cheese',
+      idx: 3,
+      loop: false
+
+      /* ,loopEa: 2 */
+      /* ,innerWrap: '.cheese' */
+      /* ,item: '.cheese' */
+      /* ,auto: false */
+      /* ,autoStart: false */
+      /*,resize: false*/
+    });
+    ddd.onclick = function () {
+      slide.move({
+        idx: 3
+        // transition: true,
+        // auto: true
+      });
+    }
+  </script>
+</body>
+
+</html>
