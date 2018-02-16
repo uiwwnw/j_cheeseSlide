@@ -9,41 +9,21 @@
   <style>
     .cheese {
       position: relative;
+    }
+    .cheeseBox {
       overflow: hidden;
-
     }
 
-    .cheeseWrap {
+    .cheeseInnerWrap {
       width: 100%;
       font-size: 0;
       white-space: nowrap;
-
     }
 
-    .cheeseItem {
-      display: inline-block;
-    } // 기본스타일 끝
-    .cheeseWrap {}
-
-    .cheeseItem {
-      width: 100%;
-      height: 50px;
-      line-height: 50px;
-      -webkit-box-sizing: border-box;
-      -moz-box-sizing: border-box;
-      box-sizing: border-box;
-      border: 1px solid #000;
-      text-align: center;
-      font-size: 20px;
-      color: #fff;
-      background: red;
-      &.half {
-        width: 50%;
-      }
-    }
 
     .cheeseLeftBtn,
     .cheeseRightBtn {
+      z-index: 2;
       position: absolute;
       top: 50%;
       width: 30px;
@@ -71,17 +51,51 @@
     .cheeseRightBtn:before {
       content: ">";
     }
+
+    .cheesePaging {
+      position: absolute;
+    }
+
+    .cheesePaging button:before {
+      content: attr(data-slide);
+    }
+
+
+
+    .cheeseItem {
+      display: inline-block;
+    } 
+    .cheeseItem {
+      width: 100%;
+      height: 50px;
+      line-height: 50px;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+      border: 1px solid #000;
+      text-align: center;
+      font-size: 20px;
+      color: #fff;
+      background: red;
+    }
+
+    #ddd {
+      margin-top: 30px;
+    }
+
   </style>
 </head>
 
 <body>
   <div class="cheese">
-    <div class="cheeseWrap">
-      <div class="cheeseItem">안녕안녕1</div>
-      <div class="cheeseItem">안녕안녕2</div>
-      <div class="cheeseItem">안녕안녕3</div>
-      <div class="cheeseItem">안녕안녕4</div>
-      <div class="cheeseItem">안녕안녕5</div>
+    <div class="cheeseBox">
+      <div class="cheeseInnerWrap">
+        <div class="cheeseItem">안녕안녕1</div>
+        <div class="cheeseItem">안녕안녕2</div>
+        <div class="cheeseItem">안녕안녕3</div>
+        <div class="cheeseItem">안녕안녕4</div>
+        <div class="cheeseItem">안녕안녕5</div>
+      </div>
     </div>
   </div>
   <button id="ddd">dsadsds</button>
@@ -93,11 +107,21 @@
       this.set = function () {
         return this.opt;
       }
-      this.check = function () {
+      this.check = function (opt) {
+        var _opt = (opt === undefined) ? { pause: false, idx: undefined, transition: true } : opt;
+        this.chk.loop = false;
+        this.chk.transition = _opt.transition;
         this.chk.cal = (this.opt.dir === 1) ? -1 : +1;
-        (this.opt.dir === false) && (this.chk.cal = 0);
-        this.chk.idx = Number(this.opt.innerWrap.getAttribute('data-index'));
+        this.chk.pause = (_opt.pause === true || this.opt.dir === false) ? true : false;
 
+        (this.chk.pause === true) && (this.chk.cal = 0);
+        this.chk.idx = (_opt.idx === undefined) ? Number(this.opt.innerWrap.getAttribute('data-index')) : _opt.idx;
+        if (_opt.idx !== undefined && this.opt.loop === true) {
+          (_opt.idx === this.opt.length - 1 && Number(this.opt.innerWrap.getAttribute('data-index')) < this.opt.length / 2) && (this.chk.loop = 'last');
+          (_opt.idx === 0 && Number(this.opt.innerWrap.getAttribute('data-index')) > this.opt.length / 2) && (this.chk.loop = 'first');
+          console.log(this.chk.loop);
+          console.log(Number(this.opt.innerWrap.getAttribute('data-index')) < Number(this.opt.innerWrap.getAttribute('data-index')) / 2)
+        }
         this.chk.idx += this.chk.cal;
         if (this.chk.idx < 0) {
           this.chk.idx = this.opt.length - 1;
@@ -106,7 +130,6 @@
           this.chk.idx = 0;
           (this.opt.loop) && (this.chk.loop = 'first');
         }
-        //console.log(this.chk.idx);
         return this.chk;
       }
       this.size = function () {
@@ -135,33 +158,69 @@
         }
       }
       this.btn = function () {
-
         this.opt.cheeseLeftBtn.onclick = function () {
           _this.opt.dir = 1;
           _this.move(_this.check());
-          _this.pause();
+          // _this.pause();
         }
         this.opt.cheeseRightBtn.onclick = function () {
           _this.opt.dir = 0;
           _this.move(_this.check());
-          _this.pause();
+          // _this.pause();
         }
       }
-      this.btnDisabled = function () {
-        this.opt.cheeseLeftBtn.setAttribute('disabled', 'disabled');
-        this.opt.cheeseRightBtn.setAttribute('disabled', 'disabled');
+      this.paging = function () {
+        // _this.opt.btnItem[_this.opt.fakePagingNum + 0].onclick = function (e) {
+        //   _this.move(_this.check({ idx: 0, pause: true, transition: true }));
+        //   _this.pause();
+        // }
+        var _fn;
+        this.opt.btnItem.forEach(function (item, i) {
+          // console.log(item);
+          // console.log(_this.opt.fakePagingNum + i);
+          // console.log(item[_this.opt.fakePagingNum + i])
+          if (i < _this.opt.fakePagingNum) { return false };
+          item.onclick = function (e) {
+            _this.move(_this.check({
+              idx: i - _this.opt.fakePagingNum, pause: true, transition: true
+            })
+            );
+            // console.log(i)
+            _this.pause();
+          }
+        })
+        //   _this.opt.btnItem[_this.opt.fakePagingNum + i].onclick = function (e) {
+        //     _this.move({
+        //       idx: i
+        //     });
+        //     console.log(i)
+        //     _this.pause();
+        //   }
+        //   console.log(_fn)
+        // }
+        // console.log(_fn)
       }
-      this.btnAbled = function () {
-        this.opt.cheeseLeftBtn.removeAttribute('disabled');
-        this.opt.cheeseRightBtn.removeAttribute('disabled');
+      this.disabled = function () {
+        // console.log(this.opt.btnItem)
+        for (var i = 0; i < this.opt.btnLength; i++) {
+
+          this.opt.btnItem[i].setAttribute('disabled', 'disabled');
+        }
+      }
+      this.abled = function () {
+        for (var i = 0; i < this.opt.btnLength; i++) {
+          this.opt.btnItem[i].removeAttribute('disabled');
+        }
       }
       this.get = function () {
         //console.log(this);
         this.chk = {};
         this.chk.transition = true;
-        this.chk.loop = false;
-        this.opt.el = document.querySelector(opt.el);
-        this.opt.innerWrap = document.querySelector(opt.innerWrap) === null ? document.querySelector('.cheeseWrap') :
+        this.opt.btnItem = [];
+        this.opt.el = document.querySelector(opt.el) === null ? document.querySelector('.cheese') : document.querySelector(opt.el);
+        this.opt.wrap = document.querySelector(opt.wrap) === null ? document.querySelector('.cheeseBox') :
+          this.opt.el.querySelector(opt.wrap);
+        this.opt.innerWrap = document.querySelector(opt.innerWrap) === null ? document.querySelector('.cheeseInnerWrap') :
           this.opt.el.querySelector(opt.innerWrap);
         this.opt.item = document.querySelector(opt.item) === null ? this.opt.el.querySelectorAll('.cheeseItem') :
           document.querySelector(opt.item);
@@ -170,6 +229,8 @@
         this.opt.duration = opt.duration === undefined ? 1000 : opt.duration;
         this.opt.direct = opt.direct === undefined ? 0 : opt.direct; // 0 === right
         this.opt.btn = opt.btn === undefined ? true : opt.btn;
+        this.opt.paging = opt.paging === undefined ? true : opt.paging;
+        this.opt.fakePagingNum = this.opt.btn === true ? 2 : 0;
         if (this.opt.btn) {
           this.opt.cheeseLeftBtn = document.createElement('button');
           this.opt.cheeseLeftBtn.setAttribute('class', 'cheeseLeftBtn');
@@ -177,8 +238,22 @@
           this.opt.cheeseRightBtn.setAttribute('class', 'cheeseRightBtn');
           this.opt.el.append(this.opt.cheeseLeftBtn);
           this.opt.el.append(this.opt.cheeseRightBtn);
-
+          this.opt.btnItem[0] = this.opt.cheeseLeftBtn;
+          this.opt.btnItem[1] = this.opt.cheeseRightBtn;
         }
+        if (this.opt.paging) {
+          var _pagingWrap = document.createElement('div');
+          _pagingWrap.setAttribute('class', 'cheesePaging');
+          for (var i = 0; i < this.opt.length; i++) {
+            var _paging = document.createElement('button');
+            _paging.setAttribute('data-slide', i);
+            _pagingWrap.append(_paging);
+            this.opt.btnItem[this.opt.fakePagingNum + i] = _paging;
+          }
+          this.opt.el.append(_pagingWrap);
+        }
+        this.opt.btnLength = this.opt.btnItem.length;
+        // console.log(this.opt.btnLength)
         this.opt.idx = opt.idx === undefined ? 0 : opt.idx;
         this.opt.resize = opt.resize === undefined ? true : opt.resize;
         this.opt.loop = opt.loop === undefined ? true : opt.loop;
@@ -200,7 +275,7 @@
         }
       }
       this.pause = function () {
-        this.btnDisabled();
+        this.disabled();
         clearTimeout(_this.opt.autoSto);
         if (this.opt.autoStart) {
           _this.opt.autoSto = setTimeout(function () {
@@ -218,33 +293,35 @@
         }, _this.opt.time);
       }
       this.move = function (opt) {
+        // console.log(opt.transition)
         if (opt.auto !== true) {
           clearTimeout(_this.opt.autoSto);
         }
         var _idx = opt.idx;
         var _trans = 'transition: ' + this.opt.duration / 1000 + 's;';
         this.opt.innerWrap.setAttribute('data-index', _idx);
-        this.btnDisabled();
-        //console.log('fdasdasdas');
+        this.disabled();
+        // console.log('fdasdasdas');
         // console.log(_idx)
-        if (this.chk.loop === 'last') {
+        if (opt.transition === false) {
+          this.opt.innerWrap.style.cssText = 'transform: translateX(' + -this.opt.pos[_idx] + 'px);' + this.opt.loopStyle;
+        }
+        else if (this.chk.loop === 'last') {
           this.opt.innerWrap.style.cssText = _trans + 'transform: translateX(' +
             this.opt.itemWidth[this.opt.length - 1] + 'px);' + this.opt.loopStyle;
         } else if (this.chk.loop === 'first') {
           this.opt.innerWrap.style.cssText = _trans + 'transform: translateX(' +
             -this.opt.totalWidth + 'px);' + this.opt.loopStyle;
-        } else if ((opt.transition === true)) {
+        } else {
           this.opt.innerWrap.style.cssText = _trans + 'transform: translateX(' +
             -this.opt.pos[_idx] + 'px);' + this.opt.loopStyle;
-        } else {
-          this.opt.innerWrap.style.cssText = 'transform: translateX(' + -this.opt.pos[_idx] + 'px);' + this.opt.loopStyle;
         }
         //console.log(this.opt.item[1].offsetWidth);
         clearTimeout(_this.opt.sto);
         _this.opt.sto = setTimeout(function () {
           _this.opt.innerWrap.style.cssText = 'transform: translateX(' + -_this.opt.pos[_idx] + 'px);' + _this.opt
             .loopStyle;
-          _this.btnAbled();
+          _this.abled();
         }, _this.opt.duration);
       }
 
@@ -259,25 +336,28 @@
 
       this.get();
       this.set();
-      this.move({
-        idx: this.opt.idx
-      });
+      this.move(this.check({
+        pause: true,
+        transition: false
+      }));
+      (this.opt.paging) && (this.paging());
       (this.opt.btn) && (this.btn());
       (this.opt.auto) && (this.auto());
       (this.opt.resize) && (this.resize());
     }
 
     var slide = new cheeseSlider({
-      el: '.cheese',
-      idx: 3,
-      loop: false
-
-      /* ,loopEa: 2 */
-      /* ,innerWrap: '.cheese' */
-      /* ,item: '.cheese' */
-      /* ,auto: false */
-      /* ,autoStart: false */
-      /*,resize: false*/
+      el: '.cheese'
+      // ,paging: false
+      // ,idx: 3
+      // ,loop: false
+      // ,paginf: false
+      // ,loopEa: 2
+      // ,innerWrap: '.cheese'
+      // ,item: '.cheese'
+      // ,auto: false
+      // ,autoStart: false
+      // ,resize: false
     });
     ddd.onclick = function () {
       slide.move({
